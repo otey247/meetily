@@ -38,6 +38,7 @@ pub(crate) use perf_trace;
 pub mod analytics;
 pub mod api;
 pub mod audio;
+pub mod chat;
 pub mod config;
 pub mod console_utils;
 pub mod database;
@@ -657,6 +658,12 @@ pub fn run() {
             api::api_save_custom_openai_config,
             api::api_get_custom_openai_config,
             api::api_test_custom_openai_connection,
+            // Chat commands (chat with transcript)
+            chat::commands::api_send_chat_message,
+            chat::commands::api_cancel_chat,
+            chat::commands::api_get_chat_history,
+            chat::commands::api_clear_chat_history,
+            chat::commands::api_reassign_chat_history,
             // Summary commands
             summary::commands::api_process_transcript,
             summary::commands::api_get_summary,

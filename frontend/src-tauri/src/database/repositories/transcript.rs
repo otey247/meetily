@@ -82,6 +82,28 @@ impl TranscriptsRepository {
         Ok(meeting_id)
     }
 
+    /// Returns the full transcript text for a meeting as one newline-joined
+    /// string, ordered by audio position (used as LLM context for chat).
+    pub async fn get_full_transcript_text(
+        pool: &SqlitePool,
+        meeting_id: &str,
+    ) -> Result<String, SqlxError> {
+        let rows: Vec<(String,)> = sqlx::query_as(
+            "SELECT transcript FROM transcripts
+             WHERE meeting_id = ?
+             ORDER BY audio_start_time ASC, timestamp ASC",
+        )
+        .bind(meeting_id)
+        .fetch_all(pool)
+        .await?;
+
+        Ok(rows
+            .into_iter()
+            .map(|(text,)| text)
+            .collect::<Vec<_>>()
+            .join("\n"))
+    }
+
     /// Searches for a query string within the transcripts.
     /// It returns a list of matching transcripts with context.
     pub async fn search_transcripts(

@@ -12,6 +12,9 @@ import { StatusOverlays } from '@/app/_components/StatusOverlays';
 import Analytics from '@/lib/analytics';
 import { SettingsModals } from './_components/SettingsModal';
 import { TranscriptPanel } from './_components/TranscriptPanel';
+import { ChatPanel } from '@/components/MeetingChat/ChatPanel';
+import { Button } from '@/components/ui/button';
+import { MessageSquare } from 'lucide-react';
 import { useModalState } from '@/hooks/useModalState';
 import { useRecordingStateSync } from '@/hooks/useRecordingStateSync';
 import { useRecordingStart } from '@/hooks/useRecordingStart';
@@ -27,9 +30,10 @@ export default function Home() {
   const [isRecording, setIsRecordingState] = useState(false);
   const [barHeights, setBarHeights] = useState(['58%', '76%', '58%']);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   // Use contexts for state management
-  const { meetingTitle } = useTranscripts();
+  const { meetingTitle, transcripts, transcriptsRef, currentMeetingId } = useTranscripts();
   const { transcriptModelConfig, selectedDevices } = useConfig();
   const recordingState = useRecordingState();
 
@@ -219,6 +223,18 @@ export default function Home() {
           showModal={showModal}
         />
 
+        {/* Live chat with the in-progress transcript */}
+        {showChat && (
+          <div className="w-[380px] shrink-0">
+            <ChatPanel
+              meetingId={currentMeetingId}
+              getTranscriptText={() => transcriptsRef.current.map(t => t.text).join('\n')}
+              hasTranscript={transcripts.length > 0}
+              onClose={() => setShowChat(false)}
+            />
+          </div>
+        )}
+
         {/* Recording controls - only show when permissions are granted or already recording and not showing status messages */}
         {(hasMicrophone || isRecording) &&
           status !== RecordingStatus.PROCESSING_TRANSCRIPTS &&
@@ -260,6 +276,15 @@ export default function Home() {
           sidebarCollapsed={sidebarCollapsed}
         />
       </div>
+      {!showChat && (
+        <Button
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-6 right-6 z-20 rounded-full shadow-lg h-12 w-12 p-0"
+          title="Chat with transcript"
+        >
+          <MessageSquare className="h-5 w-5" />
+        </Button>
+      )}
     </motion.div>
   );
 }

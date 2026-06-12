@@ -8,7 +8,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'sonner';
 import { TranscriptPanel } from '@/components/MeetingDetails/TranscriptPanel';
 import { SummaryPanel } from '@/components/MeetingDetails/SummaryPanel';
+import { ChatPanel } from '@/components/MeetingChat/ChatPanel';
 import { ModelConfig } from '@/components/ModelSettingsModal';
+import { Button } from '@/components/ui/button';
+import { MessageSquare } from 'lucide-react';
 
 // Custom hooks
 import { useMeetingData } from '@/hooks/meeting-details/useMeetingData';
@@ -57,6 +60,7 @@ export default function PageContent({
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [isRecording] = useState(false);
   const [summaryResponse] = useState<SummaryResponse | null>(null);
+  const [showChat, setShowChat] = useState(false);
 
   // Ref to store the modal open function from SummaryGeneratorButtonGroup
   const openModelSettingsRef = useRef<(() => void) | null>(null);
@@ -227,7 +231,27 @@ export default function PageContent({
           isModelConfigLoading={false}
           onOpenModelSettings={handleRegisterModalOpen}
         />
+        {showChat && (
+          <div className="w-[380px] shrink-0">
+            <ChatPanel
+              meetingId={meeting.id}
+              // Empty string: backend loads the saved transcript from the database
+              getTranscriptText={() => ''}
+              hasTranscript={meetingData.transcripts.length > 0 || (totalCount ?? 0) > 0}
+              onClose={() => setShowChat(false)}
+            />
+          </div>
+        )}
       </div>
+      {!showChat && (
+        <Button
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-6 right-6 z-20 rounded-full shadow-lg h-12 w-12 p-0"
+          title="Chat with transcript"
+        >
+          <MessageSquare className="h-5 w-5" />
+        </Button>
+      )}
     </motion.div>
   );
 }
